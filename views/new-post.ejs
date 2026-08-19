@@ -1,0 +1,29 @@
+<%- include('partials/header', { pageTitle: '新規投稿' }) %>
+
+<h1 class="page-title">新規投稿</h1>
+
+<% if (error) { %>
+  <p class="error-message"><%= error %></p>
+<% } %>
+
+<form class="post-form" action="/posts" method="POST">
+  <label>
+    タイトル <span class="required">*</span>
+    <input type="text" name="title" required maxlength="200">
+  </label>
+  <label>
+    本文 <span class="required">*</span>
+    <textarea name="content" rows="10" required></textarea>
+  </label>
+  <label>
+    投稿者名
+    <input type="text" name="author" placeholder="匿名" maxlength="50">
+  </label>
+  <label>
+    タグ（カンマ区切り）
+    <input type="text" name="tags" placeholder="例: 日記, 技術">
+  </label>
+  <button type="submit">投稿する</button>
+</form>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,54 @@
+<%- include('partials/header', { pageTitle: post.title }) %>
+
+<article class="post-detail">
+  <h1 class="page-title"><%= post.title %></h1>
+  <div class="post-meta">
+    <span><%= formatDate(post.date) %></span>
+    <span>by <%= post.author %></span>
+  </div>
+  <% if (post.tags && post.tags.length) { %>
+    <div class="tag-list">
+      <% post.tags.forEach(function(tag) { %>
+        <span class="tag"><%= tag %></span>
+      <% }) %>
+    </div>
+  <% } %>
+  <div class="post-content"><%= post.content %></div>
+
+  <form class="delete-form" action="/posts/<%= post.id %>/delete" method="POST"
+        onsubmit="return confirm('この記事を削除しますか？（コメントも全て削除されます）');">
+    <button type="submit" class="btn-danger">この記事を削除</button>
+  </form>
+</article>
+
+<section class="comments-section" id="comments">
+  <h2>コメント (<%= comments.length %>)</h2>
+
+  <% if (error) { %>
+    <p class="error-message"><%= error %></p>
+  <% } %>
+
+  <% if (comments.length === 0) { %>
+    <p class="empty-state">まだコメントはありません。最初のコメントを投稿してみましょう。</p>
+  <% } else { %>
+    <ul class="comment-list">
+      <% comments.forEach(function(c) { %>
+        <li class="comment-item">
+          <div class="comment-meta">
+            <strong><%= c.name %></strong>
+            <span><%= formatDate(c.date) %></span>
+          </div>
+          <p class="comment-message"><%= c.message %></p>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <form class="comment-form" action="/posts/<%= post.id %>/comments" method="POST">
+    <input type="text" name="name" placeholder="お名前（省略可）" maxlength="50">
+    <textarea name="message" placeholder="コメントを入力..." rows="3" required></textarea>
+    <button type="submit">コメントを投稿</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>

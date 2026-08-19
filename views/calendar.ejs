@@ -1,0 +1,69 @@
+<%- include('partials/header', { pageTitle: 'カレンダー' }) %>
+
+<h1 class="page-title">カレンダー</h1>
+
+<div class="calendar-nav">
+  <a href="/calendar?year=<%= prevYear %>&month=<%= prevMonth %>">&laquo; 前月</a>
+  <span class="calendar-title"><%= year %>年 <%= month %>月</span>
+  <a href="/calendar?year=<%= nextYear %>&month=<%= nextMonth %>">翌月 &raquo;</a>
+</div>
+
+<table class="calendar-table">
+  <thead>
+    <tr>
+      <th class="sun">日</th>
+      <th>月</th>
+      <th>火</th>
+      <th>水</th>
+      <th>木</th>
+      <th>金</th>
+      <th class="sat">土</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% weeks.forEach(function(week) { %>
+      <tr>
+        <% week.forEach(function(cell) { %>
+          <% if (!cell) { %>
+            <td class="empty-cell"></td>
+          <% } else { %>
+            <td class="<%= cell.dateStr === todayStr ? 'today' : '' %> <%= cell.dateStr === selectedDate ? 'selected' : '' %>">
+              <% if (cell.count > 0) { %>
+                <a href="/calendar?year=<%= year %>&month=<%= month %>&date=<%= cell.dateStr %>">
+                  <span class="day-num"><%= cell.day %></span>
+                  <span class="post-count">📄<%= cell.count %></span>
+                </a>
+              <% } else { %>
+                <span class="day-num muted"><%= cell.day %></span>
+              <% } %>
+            </td>
+          <% } %>
+        <% }) %>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<% if (selectedDate) { %>
+  <section class="calendar-selected">
+    <h2><%= selectedDate %> の投稿</h2>
+    <% if (selectedPosts.length === 0) { %>
+      <p class="empty-state">この日の投稿はありません。</p>
+    <% } else { %>
+      <ul class="post-list">
+        <% selectedPosts.forEach(function(post) { %>
+          <li class="post-card">
+            <a class="post-card-title" href="/posts/<%= post.id %>"><%= post.title %></a>
+            <div class="post-meta">
+              <span><%= formatDate(post.date) %></span>
+              <span>by <%= post.author %></span>
+              <span>💬 <%= commentCounts[post.id] || 0 %></span>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </section>
+<% } %>
+
+<%- include('partials/footer') %>

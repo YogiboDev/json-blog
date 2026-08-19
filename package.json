@@ -1,0 +1,14 @@
+{
+  "name": "json-blog",
+  "version": "1.0.0",
+  "description": "JSONファイルベースのシンプルなブログシステム（コメント・検索・カレンダー機能付き）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2"
+  }
+}
