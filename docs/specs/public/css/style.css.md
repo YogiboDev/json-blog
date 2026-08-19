@@ -5,6 +5,7 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
+| 1.1 | 2026-08-19 | システム | カテゴリーバッジ（`.category-badge`）およびカテゴリー一覧画面（`.category-list`系）のスタイルを追加 |
 
 ## 1. 概要
 
@@ -41,6 +42,7 @@
 | ヘッダー | `.site-header`, `.header-inner`, `.logo`, `.main-nav`, `.search-form` | `partials/header.ejs` |
 | メイン領域 | `main.container`, `.page-title` | 各画面の見出し |
 | 記事一覧 | `.post-list`, `.post-card`, `.post-card-title`, `.post-meta`, `.tag-list`, `.tag`, `.post-excerpt`, `.empty-state` | `index.ejs`, `calendar.ejs`（選択日一覧） |
+| カテゴリー | `.category-badge`, `.category-list`, `.category-list-item`, `.category-count` | `index.ejs`, `post.ejs`（バッジ）、`categories.ejs`（一覧） |
 | 記事詳細 | `.post-detail`, `.post-content`, `.delete-form`, `.btn-danger` | `post.ejs` |
 | コメント | `.comments-section`, `.comment-list`, `.comment-item`, `.comment-meta`, `.comment-message`, `.comment-form` | `post.ejs` |
 | 投稿フォーム | `.post-form`, `.required` | `new-post.ejs` |

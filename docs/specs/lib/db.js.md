@@ -5,6 +5,7 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
+| 1.1 | 2026-08-19 | システム | カテゴリー機能を追加（`createPost`に`category`引数追加、`getPostsByCategory`/`getCategories`を新設、`searchPosts`の検索対象に`category`を追加） |
 
 ## 1. 概要
 
@@ -34,7 +35,7 @@
 
 ```
 getAllPosts, getPostById, createPost, deletePost, searchPosts, getPostsByDate,
-getCommentsByPostId, addComment, getCommentCounts
+getPostsByCategory, getCategories, getCommentsByPostId, addComment, getCommentCounts
 ```
 
 ## 3. 詳細仕様
@@ -69,8 +70,8 @@ getCommentsByPostId, addComment, getCommentCounts
 - 戻り値: `Post | null`
 - 処理: `readJson(POSTS_FILE)`から`p.id === String(id)`が真となる最初の要素。該当なしは`null`
 
-#### `createPost({ title, content, author, tags })`
-- 引数: `title: string`, `content: string`, `author?: string`, `tags?: string`（カンマ区切り文字列）
+#### `createPost({ title, content, author, tags, category })`
+- 引数: `title: string`, `content: string`, `author?: string`, `tags?: string`（カンマ区切り文字列）, `category?: string`
 - 戻り値: 作成された`Post`オブジェクト
 - 処理:
   1. `posts = readJson(POSTS_FILE)`
@@ -78,8 +79,9 @@ getCommentsByPostId, addComment, getCommentCounts
   3. `title: title.trim()`, `content: content.trim()`
   4. `author: (author && author.trim()) || '匿名'`
   5. `date: new Date().toISOString()`
-  6. `tags: (tags || '').split(',').map(t => t.trim()).filter(Boolean)`
-  7. `posts.push(post)` の上で `writeJson(POSTS_FILE, posts)`
+  6. `category: (category && category.trim()) || '未分類'`
+  7. `tags: (tags || '').split(',').map(t => t.trim()).filter(Boolean)`
+  8. `posts.push(post)` の上で `writeJson(POSTS_FILE, posts)`
 - 前提: 呼び出し側（`server.js`）で`title`・`content`の必須チェック済みであること
 
 #### `deletePost(id)`
@@ -90,12 +92,22 @@ getCommentsByPostId, addComment, getCommentCounts
 #### `searchPosts(query)`
 - 引数: `query: string`
 - 戻り値: `Post[]`
-- 処理: `q = query.trim().toLowerCase()`。`q`が空なら`[]`を返す。`getAllPosts()`（新しい順）に対し、各記事の`title + ' ' + content + ' ' + tags.join(' ')`を小文字化した文字列に`q`が`includes`されるものを抽出
+- 処理: `q = query.trim().toLowerCase()`。`q`が空なら`[]`を返す。`getAllPosts()`（新しい順）に対し、各記事の`title + ' ' + content + ' ' + category + ' ' + tags.join(' ')`を小文字化した文字列に`q`が`includes`されるものを抽出
 
 #### `getPostsByDate(dateStr)`
 - 引数: `dateStr: string`（`YYYY-MM-DD`形式）
 - 戻り値: `Post[]`
 - 処理: `getAllPosts()`のうち`p.date.slice(0, 10) === dateStr`となる記事を抽出
+
+#### `getPostsByCategory(category)`
+- 引数: `category: string`
+- 戻り値: `Post[]`
+- 処理: `getAllPosts()`のうち`(p.category || '未分類') === category`となる記事を抽出（新しい順）
+
+#### `getCategories()`
+- 引数: なし
+- 戻り値: `{ name: string, count: number }[]`
+- 処理: `getAllPosts()`を`category`（未設定時は`'未分類'`）ごとに件数集計し、件数降順・同数の場合は名称の昇順（`localeCompare`）でソートして返す
 
 ### 3.3 コメント関連関数
 
@@ -126,7 +138,7 @@ getCommentsByPostId, addComment, getCommentCounts
 
 | 関数 | 入力（読み込むファイル） | 出力（書き込むファイル） |
 |---|---|---|
-| `getAllPosts`, `getPostById`, `searchPosts`, `getPostsByDate` | `posts.json` | なし |
+| `getAllPosts`, `getPostById`, `searchPosts`, `getPostsByDate`, `getPostsByCategory`, `getCategories` | `posts.json` | なし |
 | `createPost` | `posts.json` | `posts.json` |
 | `deletePost` | `posts.json`, `comments.json` | `posts.json`, `comments.json` |
 | `getCommentsByPostId`, `getCommentCounts` | `comments.json` | なし |
@@ -138,3 +150,4 @@ getCommentsByPostId, addComment, getCommentCounts
 - 複数プロセス・複数リクエストからの同時書き込みに対する排他制御（ファイルロック等）は実装していない。ほぼ同時に`createPost`が呼ばれた場合、後勝ちで一方の更新が失われる可能性がある。
 - `id`は記事・コメットそれぞれ独立した採番空間であり、両者の値が偶然一致しても`postId`により正しく関連付けられるため問題ない。
 - `readJson`はJSON構文エラーを捕捉しないため、`data/*.json`を手動編集する際は構文を崩さないよう注意すること。
+- `category`フィールドを持たない既存記事データ（`v1.0`以前に作成されたレコード等）に対しては、`getPostsByCategory`/`getCategories`ともに`'未分類'`として扱うフォールバックを持つため、データ移行なしでそのまま利用できる。

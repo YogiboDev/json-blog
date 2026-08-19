@@ -38,18 +38,36 @@ app.get('/', (req, res) => {
 
 // --- New post form ---
 app.get('/new', (req, res) => {
-  res.render('new-post', { error: null });
+  res.render('new-post', { error: null, categories: db.getCategories() });
 });
 
 app.post('/posts', (req, res) => {
-  const { title, content, author, tags } = req.body;
+  const { title, content, author, tags, category } = req.body;
   if (!title || !title.trim() || !content || !content.trim()) {
     return res.status(400).render('new-post', {
       error: 'タイトルと本文は必須です。',
+      categories: db.getCategories(),
     });
   }
-  const post = db.createPost({ title, content, author, tags });
+  const post = db.createPost({ title, content, author, tags, category });
   res.redirect(`/posts/${post.id}`);
+});
+
+// --- Categories ---
+app.get('/categories', (req, res) => {
+  res.render('categories', { categories: db.getCategories() });
+});
+
+app.get('/categories/:category', (req, res) => {
+  const category = req.params.category;
+  const posts = db.getPostsByCategory(category);
+  const commentCounts = db.getCommentCounts();
+  res.render('index', {
+    posts,
+    commentCounts,
+    heading: `カテゴリー: 「${category}」`,
+    emptyMessage: 'このカテゴリーの記事はまだありません。',
+  });
 });
 
 // --- Search (must come before /posts/:id-like collisions; separate path anyway) ---
