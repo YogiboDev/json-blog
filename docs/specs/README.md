@@ -2,18 +2,20 @@
 
 各プログラムファイルの詳細仕様は以下を参照。全ファイル、冒頭に改訂履歴を持つ。
 
+本ディレクトリは、実際のプログラムと同じディレクトリ階層構造を持つ（例: `views/post.ejs` の仕様書は `views/post.ejs.md`）。
+
 | ファイル | 仕様書 |
 |---|---|
 | `server.js` | [server.js.md](server.js.md) |
-| `lib/db.js` | [lib_db.js.md](lib_db.js.md) |
-| `views/partials/header.ejs` | [views_partials_header.ejs.md](views_partials_header.ejs.md) |
-| `views/partials/footer.ejs` | [views_partials_footer.ejs.md](views_partials_footer.ejs.md) |
-| `views/index.ejs` | [views_index.ejs.md](views_index.ejs.md) |
-| `views/post.ejs` | [views_post.ejs.md](views_post.ejs.md) |
-| `views/new-post.ejs` | [views_new-post.ejs.md](views_new-post.ejs.md) |
-| `views/calendar.ejs` | [views_calendar.ejs.md](views_calendar.ejs.md) |
-| `views/404.ejs` | [views_404.ejs.md](views_404.ejs.md) |
-| `public/css/style.css` | [public_css_style.css.md](public_css_style.css.md) |
+| `lib/db.js` | [lib/db.js.md](lib/db.js.md) |
+| `views/partials/header.ejs` | [views/partials/header.ejs.md](views/partials/header.ejs.md) |
+| `views/partials/footer.ejs` | [views/partials/footer.ejs.md](views/partials/footer.ejs.md) |
+| `views/index.ejs` | [views/index.ejs.md](views/index.ejs.md) |
+| `views/post.ejs` | [views/post.ejs.md](views/post.ejs.md) |
+| `views/new-post.ejs` | [views/new-post.ejs.md](views/new-post.ejs.md) |
+| `views/calendar.ejs` | [views/calendar.ejs.md](views/calendar.ejs.md) |
+| `views/404.ejs` | [views/404.ejs.md](views/404.ejs.md) |
+| `public/css/style.css` | [public/css/style.css.md](public/css/style.css.md) |
 
 ## 改訂履歴の運用ルール
 
