@@ -5,6 +5,7 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
+| 1.1 | 2026-08-19 | システム | カテゴリー入力欄（既存カテゴリーの`<datalist>`補完付き）を追加 |
 
 ## 1. 概要
 
@@ -26,6 +27,7 @@
 | 変数名 | 型 | 必須 | 説明 |
 |---|---|---|---|
 | `error` | string \| null | ○ | 投稿失敗時のエラーメッセージ。通常表示時は`null` |
+| `categories` | `{name, count}[]` | ○ | 既存カテゴリー一覧（`db.getCategories()`）。カテゴリー入力欄の`<datalist>`候補として使用 |
 
 ### 3.2 描画ロジック
 
@@ -35,14 +37,15 @@
    - `title`：`type="text"`, `required`, `maxlength="200"`
    - `content`：`<textarea>`, `required`, 10行
    - `author`：`type="text"`, 任意, `maxlength="50"`, placeholder「匿名」
+   - `category`：`type="text"`, 任意, `maxlength="50"`, placeholder「未分類」。`list="category-suggestions"`で`categories`を`<datalist>`の候補として表示（自由入力も可）
    - `tags`：`type="text"`, 任意, placeholder「例: 日記, 技術」（カンマ区切り入力を想定）
    - 送信ボタン「投稿する」
 
 ## 4. 入出力仕様
 
-- 入力: `error`
+- 入力: `error`, `categories`
 - 出力: HTML全体
-- フォーム送信先: `POST /posts`（パラメータ: `title`, `content`, `author`, `tags`）
+- フォーム送信先: `POST /posts`（パラメータ: `title`, `content`, `author`, `tags`, `category`）
 
 ## 5. 特記事項・留意点
 

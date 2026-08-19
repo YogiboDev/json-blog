@@ -5,6 +5,7 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
+| 1.1 | 2026-08-19 | システム | カテゴリー機能を追加（`GET /categories`, `GET /categories/:category`、`POST /posts`に`category`パラメータ追加） |
 
 ## 1. 概要
 
@@ -64,7 +65,9 @@
 | 6 | GET | `/posts/:id` | 記事詳細取得。存在しなければHTTP 404で`404.ejs`。存在すれば`post.ejs`を描画 |
 | 7 | POST | `/posts/:id/comments` | コメント新規作成。記事なしはHTTP 404、本文空はHTTP 400で`post.ejs`再描画。成功時は`/posts/:id#comments`へ302リダイレクト |
 | 8 | POST | `/posts/:id/delete` | 記事削除（コメントもカスケード削除）。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
-| 9 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
+| 9 | GET | `/categories` | `db.getCategories()`で件数付きカテゴリー一覧を取得し`categories.ejs`を描画 |
+| 10 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
+| 11 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
 
 ### 3.4 ルート個別仕様
 
@@ -74,12 +77,12 @@
 - 出力変数: `posts`, `commentCounts`, `heading: '最新の投稿'`, `emptyMessage: 'まだ投稿がありません。'`
 
 #### GET `/new`
-- 出力変数: `error: null`
+- 出力変数: `error: null`, `categories`（`db.getCategories()`。既存カテゴリーの入力補助用`<datalist>`向け）
 
 #### POST `/posts`
-- 入力: `req.body.title`, `req.body.content`, `req.body.author`, `req.body.tags`
-- バリデーション: `title`または`content`が空白のみ／未指定 → HTTP 400、`new-post.ejs`を`{ error: 'タイトルと本文は必須です。' }`で再描画
-- 正常系: `db.createPost({ title, content, author, tags })` → `res.redirect('/posts/' + post.id)`
+- 入力: `req.body.title`, `req.body.content`, `req.body.author`, `req.body.tags`, `req.body.category`
+- バリデーション: `title`または`content`が空白のみ／未指定 → HTTP 400、`new-post.ejs`を`{ error: 'タイトルと本文は必須です。', categories: db.getCategories() }`で再描画
+- 正常系: `db.createPost({ title, content, author, tags, category })` → `res.redirect('/posts/' + post.id)`
 
 #### GET `/search`
 - 入力: `req.query.q`（未指定時は空文字扱い）
@@ -110,6 +113,17 @@
 #### POST `/posts/:id/delete`
 - 入力: `req.params.id`
 - 処理: 記事未存在→HTTP 404。存在すれば`db.deletePost(post.id)` → `res.redirect('/')`
+
+#### GET `/categories`
+- 入力: なし
+- 処理: `db.getCategories()`
+- 出力変数: `categories`（`{name, count}[]`、件数降順・同数は名称昇順）
+
+#### GET `/categories/:category`
+- 入力: `req.params.category`（URLデコード済みのカテゴリー名）
+- 処理: `db.getPostsByCategory(category)`, `db.getCommentCounts()`
+- 出力変数: `posts`, `commentCounts`, `heading: 'カテゴリー: 「' + category + '」'`, `emptyMessage: 'このカテゴリーの記事はまだありません。'`
+- 描画テンプレート: `index.ejs`（一覧画面を流用）
 
 #### フォールバック（404）
 - `app.use((req, res) => res.status(404).render('404'))` — 定義済みルートに一致しない全リクエストを捕捉

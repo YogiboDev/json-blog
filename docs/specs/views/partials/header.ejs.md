@@ -5,6 +5,7 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
+| 1.1 | 2026-08-19 | システム | ナビゲーションに「カテゴリー」（`/categories`）へのリンクを追加 |
 
 ## 1. 概要
 
@@ -17,7 +18,7 @@
 ## 2. 位置づけ・依存関係
 
 - `public/css/style.css`を`<link>`で読み込む
-- ヘッダー内ナビゲーションは`/`, `/calendar`, `/new`への静的リンク
+- ヘッダー内ナビゲーションは`/`, `/categories`, `/calendar`, `/new`への静的リンク
 - 検索フォームは`GET /search`へ送信（`server.js`のルート#4に対応）
 
 ## 3. 詳細仕様
@@ -34,7 +35,7 @@
 1. `<!DOCTYPE html>` 〜 `<head>`：文字コード（UTF-8）、viewport、`<title>`、CSSリンク
 2. `<header class="site-header">`
    - ロゴ（`📝 JSON Blog`、`/`へのリンク）
-   - `<nav class="main-nav">`：ホーム／カレンダー／新規投稿の3リンク
+   - `<nav class="main-nav">`：ホーム／カテゴリー／カレンダー／新規投稿の4リンク
    - `<form class="search-form" action="/search" method="GET">`：`<input name="q">`（`value`に`searchQuery`を反映）、送信ボタン
 3. `<main class="container">`（開始タグのみ。閉じタグは`footer.ejs`側）
 

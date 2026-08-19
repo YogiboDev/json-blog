@@ -5,14 +5,15 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
+| 1.1 | 2026-08-19 | システム | 各記事カードにカテゴリーバッジ（`/categories/:category`へのリンク）を追加 |
 
 ## 1. 概要
 
 | 項目 | 内容 |
 |---|---|
 | ファイルパス | `views/index.ejs` |
-| 役割 | 記事一覧画面（SCR-01）および検索結果画面（SCR-04）を描画する共通テンプレート |
-| 描画元ルート | `GET /`（`server.js`）, `GET /search`（`server.js`） |
+| 役割 | 記事一覧画面（SCR-01）、検索結果画面（SCR-04）、およびカテゴリー別記事一覧画面を描画する共通テンプレート |
+| 描画元ルート | `GET /`（`server.js`）, `GET /search`（`server.js`）, `GET /categories/:category`（`server.js`） |
 
 ## 2. 位置づけ・依存関係
 
@@ -39,6 +40,7 @@
 4. それ以外：`posts`を`forEach`し、各記事について以下を`post-card`として表示
    - タイトル（`/posts/:id`へのリンク）
    - 投稿日時（`formatDate(post.date)`）、投稿者（`post.author`）、コメント数（`commentCounts[post.id] || 0`）
+   - カテゴリーバッジ：`post.category || '未分類'`を`/categories/{encodeURIComponent(category)}`へのリンクとして表示（`category-badge`クラス）
    - タグ一覧（`post.tags`が存在し1件以上の場合のみ、`tag-list`として表示）
    - 本文抜粋：`post.content.slice(0, 120)` ＋ 120文字超なら`…`を付与
 
@@ -49,6 +51,6 @@
 
 ## 5. 特記事項・留意点
 
-- `GET /`と`GET /search`の両方で同一テンプレートを使い回す設計のため、変数の意味合い（`heading`, `emptyMessage`）は呼び出し元ルートによって内容が変わる。テンプレート自体の分岐ロジックはない。
+- `GET /`, `GET /search`, `GET /categories/:category`の3ルートで同一テンプレートを使い回す設計のため、変数の意味合い（`heading`, `emptyMessage`）は呼び出し元ルートによって内容が変わる。テンプレート自体の分岐ロジックはない。
 - 本文抜粋・タイトル・投稿者名等はすべて`<%= %>`によるエスケープ出力でXSS対策済み。
 - `post.tags`が未定義の記事データが存在する場合でも`&&`によるガードがあるためエラーにならない。
