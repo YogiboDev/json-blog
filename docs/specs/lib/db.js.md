@@ -5,7 +5,7 @@
 | 版数 | 改訂日 | 改訂者 | 改訂内容 |
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
-| 1.1 | 2026-08-19 | システム | カテゴリー機能を追加（`createPost`に`category`引数追加、`getPostsByCategory`/`getCategories`を新設、`searchPosts`の検索対象に`category`を追加） |
+| 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`createPost`に`category`引数追加、`getPostsByCategory`/`getCategories`を新設、`searchPosts`の検索対象に`category`を追加） |
 
 ## 1. 概要
 
