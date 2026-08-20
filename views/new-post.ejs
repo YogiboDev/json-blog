@@ -13,7 +13,7 @@
   </label>
   <label>
     本文 <span class="required">*</span>
-    <textarea name="content" rows="10" required></textarea>
+    <textarea name="content" rows="10"></textarea>
   </label>
   <label>
     投稿者名
@@ -34,5 +34,18 @@
   </label>
   <button type="submit">投稿する</button>
 </form>
+
+<script src="/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    license_key: 'gpl',
+    selector: 'textarea[name="content"]',
+    height: 400,
+    menubar: false,
+    language: 'ja',
+    plugins: 'lists link autolink',
+    toolbar: 'undo redo | blocks | bold italic underline | bullist numlist | blockquote link | removeformat',
+  });
+</script>
 
 <%- include('partials/footer') %>

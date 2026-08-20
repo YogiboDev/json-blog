@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "ejs": "^3.1.10",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "tinymce": "^8.8.2",
+    "tinymce-i18n": "^26.8.2"
   }
 }
