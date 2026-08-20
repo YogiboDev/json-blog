@@ -7,7 +7,7 @@
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリーバッジ（`.category-badge`）およびカテゴリー一覧画面（`.category-list`系）のスタイルを追加 |
 | 1.2 | 2026-08-20 | システム | `.tag`をリンク要素として使えるよう`text-decoration: none`とホバー時の配色（`.tag:hover`）を追加 |
-| 1.3 | 2026-08-20 | システム | ヘッダーのログアウトボタン用に`.logout-form`, `.link-button`, `.link-button:hover`を追加 |
+| 1.3 | 2026-08-20 | システム | #2: ヘッダーのログアウトボタン用に`.logout-form`, `.link-button`, `.link-button:hover`を追加 |
 
 ## 1. 概要
 

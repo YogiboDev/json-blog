@@ -7,7 +7,7 @@
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`GET /categories`, `GET /categories/:category`、`POST /posts`に`category`パラメータ追加） |
 | 1.2 | 2026-08-20 | システム | タグ機能を追加（`GET /tags`, `GET /tags/:tag`） |
-| 1.3 | 2026-08-20 | システム | ログイン機能を追加（`GET/POST /login`, `POST /logout`。`GET /new`, `POST /posts`に`auth.requireLogin`ミドルウェアを適用。全リクエストに`res.locals.isAuthenticated`を設定する共通ミドルウェアを追加） |
+| 1.3 | 2026-08-20 | システム | #2: ログイン機能を追加（`GET/POST /login`, `POST /logout`。`GET /new`, `POST /posts`に`auth.requireLogin`ミドルウェアを適用。全リクエストに`res.locals.isAuthenticated`を設定する共通ミドルウェアを追加） |
 
 ## 1. 概要
 
