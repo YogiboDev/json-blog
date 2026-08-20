@@ -7,6 +7,7 @@
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: 各記事カードにカテゴリーバッジ（`/categories/:category`へのリンク）を追加 |
 | 1.2 | 2026-08-20 | システム | 各記事カードのタグを`/tags/:tag`へのリンクに変更 |
+| 1.3 | 2026-08-20 | システム | #3: TinyMCE導入に伴い、本文抜粋生成処理を`stripHtml(post.content)`でHTMLタグを除去した平文テキストを対象とするよう変更 |
 
 ## 1. 概要
 
@@ -20,6 +21,7 @@
 
 - `partials/header.ejs`, `partials/footer.ejs`をインクルード
 - `app.locals.formatDate()`（`server.js`定義）を呼び出し日時整形を行う
+- `app.locals.stripHtml()`（`server.js`定義）を呼び出し本文のHTMLタグ・実体参照の除去を行う
 
 ## 3. 詳細仕様
 
@@ -43,7 +45,7 @@
    - 投稿日時（`formatDate(post.date)`）、投稿者（`post.author`）、コメント数（`commentCounts[post.id] || 0`）
    - カテゴリーバッジ：`post.category || '未分類'`を`/categories/{encodeURIComponent(category)}`へのリンクとして表示（`category-badge`クラス）
    - タグ一覧（`post.tags`が存在し1件以上の場合のみ、`tag-list`として表示。各タグは`/tags/{encodeURIComponent(tag)}`へのリンク、`tag`クラス）
-   - 本文抜粋：`post.content.slice(0, 120)` ＋ 120文字超なら`…`を付与
+   - 本文抜粋：`var excerptText = stripHtml(post.content);` で平文テキスト化し、`excerptText.slice(0, 120)` ＋ 120文字超なら`…`を付与
 
 ## 4. 入出力仕様
 

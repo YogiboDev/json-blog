@@ -7,6 +7,7 @@
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`createPost`に`category`引数追加、`getPostsByCategory`/`getCategories`を新設、`searchPosts`の検索対象に`category`を追加） |
 | 1.2 | 2026-08-20 | システム | タグ機能を追加（`getPostsByTag`/`getTags`を新設） |
+| 1.3 | 2026-08-20 | システム | #3: `searchPosts`において記事本文からHTMLタグを除去した平文テキストを対象にキーワード検索を行うよう改修 |
 
 ## 1. 概要
 
@@ -94,7 +95,7 @@ getCommentCounts
 #### `searchPosts(query)`
 - 引数: `query: string`
 - 戻り値: `Post[]`
-- 処理: `q = query.trim().toLowerCase()`。`q`が空なら`[]`を返す。`getAllPosts()`（新しい順）に対し、各記事の`title + ' ' + content + ' ' + category + ' ' + tags.join(' ')`を小文字化した文字列に`q`が`includes`されるものを抽出
+- 処理: `q = query.trim().toLowerCase()`。`q`が空なら`[]`を返す。`getAllPosts()`（新しい順）に対し、各記事本文からHTMLタグを除去（`p.content.replace(/<[^>]*>/g, ' ')`）した上で、`title + ' ' + content + ' ' + (category || '') + ' ' + (tags || []).join(' ')`を小文字化した文字列に`q`が`includes`されるものを抽出
 
 #### `getPostsByDate(dateStr)`
 - 引数: `dateStr: string`（`YYYY-MM-DD`形式）

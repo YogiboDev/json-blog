@@ -8,6 +8,7 @@
 | 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`GET /categories`, `GET /categories/:category`、`POST /posts`に`category`パラメータ追加） |
 | 1.2 | 2026-08-20 | システム | タグ機能を追加（`GET /tags`, `GET /tags/:tag`） |
 | 1.3 | 2026-08-20 | システム | #2: ログイン機能を追加（`GET/POST /login`, `POST /logout`。`GET /new`, `POST /posts`に`auth.requireLogin`ミドルウェアを適用。全リクエストに`res.locals.isAuthenticated`を設定する共通ミドルウェアを追加） |
+| 1.4 | 2026-08-20 | システム | #3: TinyMCE静的配信（`/tinymce`, `/tinymce/langs`）を追加。記事一覧等の抜粋表示用にHTMLタグ・実体参照を除去する共通ヘルパー`stripHtml`（`app.locals.stripHtml`）を追加 |
 
 ## 1. 概要
 
@@ -33,7 +34,7 @@
 - `server.js` → `lib/db.js`の全公開関数を呼び出す
 - `server.js` → `lib/auth.js`の全公開関数を呼び出す
 - `server.js` → `views/*.ejs`を`res.render()`で描画
-- `server.js` → `public/`配下を`express.static`で静的配信
+- `server.js` → `public/`配下および`node_modules/tinymce`, `node_modules/tinymce-i18n/langs8`配下を`express.static`で静的配信
 
 ## 3. 詳細仕様
 
@@ -44,7 +45,7 @@
 | ビューエンジン | `app.set('view engine', 'ejs')` |
 | ビューディレクトリ | `path.join(__dirname, 'views')` |
 | ボディパーサー | `express.urlencoded({ extended: true })`（フォーム送信用）, `express.json()` |
-| 静的配信 | `express.static(path.join(__dirname, 'public'))` |
+| 静的配信 | `express.static(path.join(__dirname, 'public'))`（`/`直下）<br>`/tinymce` → `express.static(path.join(__dirname, 'node_modules', 'tinymce'))`<br>`/tinymce/langs` → `express.static(path.join(__dirname, 'node_modules', 'tinymce-i18n', 'langs8'))` |
 
 ### 3.2 共通ヘルパー関数
 
@@ -56,6 +57,15 @@
 | 戻り値 | `string` — `ja-JP`ロケールの`YYYY/MM/DD HH:mm`相当の表記 |
 | 実装 | `new Date(iso).toLocaleString('ja-JP', { year, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })` |
 | 公開範囲 | `app.locals.formatDate`に登録し、全EJSテンプレートから`formatDate()`として呼び出し可能 |
+
+#### `stripHtml(html)`
+
+| 項目 | 内容 |
+|---|---|
+| 引数 | `html: string` — HTML文字列 |
+| 戻り値 | `string` — HTMLタグおよび実体参照を除去し、空白を正規化した平文テキスト |
+| 実装 | タグ（`<[^>]*>`）および`&nbsp;`を半角スペースに、`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#39;`を対応する記号に置換後、連続空白（`\s+`）を単一スペースに置換して`trim()` |
+| 公開範囲 | `app.locals.stripHtml`に登録し、全EJSテンプレートから`stripHtml()`として呼び出し可能 |
 
 ### 3.3 共通ミドルウェア
 
