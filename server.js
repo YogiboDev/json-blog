@@ -12,6 +12,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
+app.use('/tinymce/langs', express.static(path.join(__dirname, 'node_modules', 'tinymce-i18n', 'langs8')));
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = auth.isAuthenticated(req);
@@ -29,6 +31,20 @@ function formatDate(iso) {
   });
 }
 app.locals.formatDate = formatDate;
+
+function stripHtml(html) {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+app.locals.stripHtml = stripHtml;
 
 // --- Home: list all posts ---
 app.get('/', (req, res) => {

@@ -14,7 +14,7 @@
       <% }) %>
     </div>
   <% } %>
-  <div class="post-content"><%= post.content %></div>
+  <div class="post-content"><%- post.content %></div>
 
   <form class="delete-form" action="/posts/<%= post.id %>/delete" method="POST"
         onsubmit="return confirm('この記事を削除しますか？（コメントも全て削除されます）');">
