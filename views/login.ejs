@@ -1,0 +1,22 @@
+<%- include('partials/header', { pageTitle: 'ログイン' }) %>
+
+<h1 class="page-title">ログイン</h1>
+
+<% if (error) { %>
+  <p class="error-message"><%= error %></p>
+<% } %>
+
+<form class="post-form" action="/login" method="POST">
+  <input type="hidden" name="redirect" value="<%= redirect %>">
+  <label>
+    ID <span class="required">*</span>
+    <input type="text" name="id" required maxlength="50" autofocus>
+  </label>
+  <label>
+    パスワード <span class="required">*</span>
+    <input type="password" name="password" required maxlength="50">
+  </label>
+  <button type="submit">ログイン</button>
+</form>
+
+<%- include('partials/footer') %>

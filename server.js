@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const db = require('./lib/db');
+const auth = require('./lib/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,11 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = auth.isAuthenticated(req);
+  next();
+});
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -36,12 +42,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// --- New post form ---
-app.get('/new', (req, res) => {
+// --- New post form (login required) ---
+app.get('/new', auth.requireLogin, (req, res) => {
   res.render('new-post', { error: null, categories: db.getCategories() });
 });
 
-app.post('/posts', (req, res) => {
+app.post('/posts', auth.requireLogin, (req, res) => {
   const { title, content, author, tags, category } = req.body;
   if (!title || !title.trim() || !content || !content.trim()) {
     return res.status(400).render('new-post', {
@@ -51,6 +57,28 @@ app.post('/posts', (req, res) => {
   }
   const post = db.createPost({ title, content, author, tags, category });
   res.redirect(`/posts/${post.id}`);
+});
+
+// --- Login / logout ---
+app.get('/login', (req, res) => {
+  res.render('login', { error: null, redirect: (req.query.redirect || '/').toString() });
+});
+
+app.post('/login', (req, res) => {
+  const { id, password, redirect } = req.body;
+  if (auth.verifyCredentials(id, password)) {
+    auth.login(res);
+    return res.redirect(redirect || '/');
+  }
+  res.status(400).render('login', {
+    error: 'IDまたはパスワードが正しくありません。',
+    redirect: redirect || '/',
+  });
+});
+
+app.post('/logout', (req, res) => {
+  auth.logout(res);
+  res.redirect('/');
 });
 
 // --- Categories ---

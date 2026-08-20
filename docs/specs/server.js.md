@@ -7,6 +7,7 @@
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`GET /categories`, `GET /categories/:category`、`POST /posts`に`category`パラメータ追加） |
 | 1.2 | 2026-08-20 | システム | タグ機能を追加（`GET /tags`, `GET /tags/:tag`） |
+| 1.3 | 2026-08-20 | システム | ログイン機能を追加（`GET/POST /login`, `POST /logout`。`GET /new`, `POST /posts`に`auth.requireLogin`ミドルウェアを適用。全リクエストに`res.locals.isAuthenticated`を設定する共通ミドルウェアを追加） |
 
 ## 1. 概要
 
@@ -25,10 +26,12 @@
 | `express` | 外部パッケージ | HTTPサーバー・ルーティング |
 | `path` | Node.js標準 | ビュー／静的ファイルの絶対パス解決 |
 | `./lib/db` | 自作モジュール | 記事・コメントのデータアクセス関数群 |
+| `./lib/auth` | 自作モジュール | 固定ID・パスワードによる認証判定、ログイン状態Cookieの発行・検証、ログイン必須ミドルウェア |
 
 ### 2.2 呼び出し関係
 
 - `server.js` → `lib/db.js`の全公開関数を呼び出す
+- `server.js` → `lib/auth.js`の全公開関数を呼び出す
 - `server.js` → `views/*.ejs`を`res.render()`で描画
 - `server.js` → `public/`配下を`express.static`で静的配信
 
@@ -54,13 +57,21 @@
 | 実装 | `new Date(iso).toLocaleString('ja-JP', { year, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })` |
 | 公開範囲 | `app.locals.formatDate`に登録し、全EJSテンプレートから`formatDate()`として呼び出し可能 |
 
-### 3.3 ルート定義一覧
+### 3.3 共通ミドルウェア
+
+| 項目 | 内容 |
+|---|---|
+| 処理 | 全リクエストに対し`res.locals.isAuthenticated = auth.isAuthenticated(req)`を設定 |
+| 目的 | 全EJSテンプレート（`partials/header.ejs`のログイン／ログアウト表示切り替え）から`isAuthenticated`を参照可能にする |
+| 登録位置 | ボディパーサー・静的配信設定の直後、全ルート定義より前 |
+
+### 3.4 ルート定義一覧
 
 | # | メソッド | パス | 処理概要 |
 |---|---|---|---|
 | 1 | GET | `/` | 全記事一覧＋コメント数を取得し`index.ejs`を描画 |
-| 2 | GET | `/new` | `new-post.ejs`を`error: null`で描画 |
-| 3 | POST | `/posts` | 記事新規作成。バリデーションNGならHTTP 400で`new-post.ejs`再描画、成功時は`/posts/:id`へ302リダイレクト |
+| 2 | GET | `/new` | ログイン必須（`auth.requireLogin`）。`new-post.ejs`を`error: null`で描画 |
+| 3 | POST | `/posts` | ログイン必須（`auth.requireLogin`）。記事新規作成。バリデーションNGならHTTP 400で`new-post.ejs`再描画、成功時は`/posts/:id`へ302リダイレクト |
 | 4 | GET | `/search` | クエリ`q`で`db.searchPosts()`を実行し`index.ejs`を描画（一覧テンプレート流用） |
 | 5 | GET | `/calendar` | クエリ`year`,`month`,`date`をもとにカレンダー用データを組み立て`calendar.ejs`を描画 |
 | 6 | GET | `/posts/:id` | 記事詳細取得。存在しなければHTTP 404で`404.ejs`。存在すれば`post.ejs`を描画 |
@@ -70,9 +81,12 @@
 | 10 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
 | 11 | GET | `/tags` | `db.getTags()`で件数付きタグ一覧を取得し`tags.ejs`を描画 |
 | 12 | GET | `/tags/:tag` | `db.getPostsByTag(tag)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
-| 13 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
+| 13 | GET | `/login` | `login.ejs`を`error: null`で描画 |
+| 14 | POST | `/login` | ID・パスワード検証。成功時はセッションCookie発行し`redirect`（既定`/`）へ302リダイレクト、失敗時はHTTP 400で`login.ejs`再描画 |
+| 15 | POST | `/logout` | セッションCookieを削除し`/`へ302リダイレクト |
+| 16 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
 
-### 3.4 ルート個別仕様
+### 3.5 ルート個別仕様
 
 #### GET `/`
 - 入力: なし
@@ -80,9 +94,11 @@
 - 出力変数: `posts`, `commentCounts`, `heading: '最新の投稿'`, `emptyMessage: 'まだ投稿がありません。'`
 
 #### GET `/new`
+- 前置ミドルウェア: `auth.requireLogin`（未ログイン時は`/login?redirect=/new`へ302リダイレクトし、以降未実行）
 - 出力変数: `error: null`, `categories`（`db.getCategories()`。既存カテゴリーの入力補助用`<datalist>`向け）
 
 #### POST `/posts`
+- 前置ミドルウェア: `auth.requireLogin`（未ログイン時は`/login?redirect=/posts`へ302リダイレクトし、以降未実行）
 - 入力: `req.body.title`, `req.body.content`, `req.body.author`, `req.body.tags`, `req.body.category`
 - バリデーション: `title`または`content`が空白のみ／未指定 → HTTP 400、`new-post.ejs`を`{ error: 'タイトルと本文は必須です。', categories: db.getCategories() }`で再描画
 - 正常系: `db.createPost({ title, content, author, tags, category })` → `res.redirect('/posts/' + post.id)`
@@ -139,6 +155,20 @@
 - 出力変数: `posts`, `commentCounts`, `heading: 'タグ: 「' + tag + '」'`, `emptyMessage: 'このタグの記事はまだありません。'`
 - 描画テンプレート: `index.ejs`（一覧画面を流用）
 
+#### GET `/login`
+- 入力: `req.query.redirect`（省略時は`'/'`）
+- 出力変数: `error: null`, `redirect: (req.query.redirect || '/').toString()`
+
+#### POST `/login`
+- 入力: `req.body.id`, `req.body.password`, `req.body.redirect`
+- 処理: `auth.verifyCredentials(id, password)`
+- 正常系: `auth.login(res)`でセッションCookieを発行し、`res.redirect(redirect || '/')`
+- 異常系: HTTP 400で`login.ejs`を`{ error: 'IDまたはパスワードが正しくありません。', redirect: redirect || '/' }`で再描画
+
+#### POST `/logout`
+- 処理: `auth.logout(res)`でセッションCookieを削除
+- 正常系: `res.redirect('/')`
+
 #### フォールバック（404）
 - `app.use((req, res) => res.status(404).render('404'))` — 定義済みルートに一致しない全リクエストを捕捉
 
@@ -162,3 +192,4 @@
 - ルーティングの順序に依存する処理はない（`/search`と`/posts/:id`はパスパターンが重複しないため定義順の影響を受けない）。
 - リクエストパラメータの型変換（`parseInt`）に失敗した場合（`NaN`）は、`year`・`month`ともに`||`演算子により当日の値へフォールバックする。
 - サーバー起動ログは標準出力に`Blog server running at http://localhost:${PORT}`を出力する。
+- `POST /posts/:id/delete`にはログイン必須化を適用していない（本バージョンでは`/new`, `/posts`のみを対象とする）。
