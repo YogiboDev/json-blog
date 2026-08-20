@@ -8,6 +8,7 @@
 |---|---|
 | `server.js` | [server.js.md](server.js.md) |
 | `lib/db.js` | [lib/db.js.md](lib/db.js.md) |
+| `lib/auth.js` | [lib/auth.js.md](lib/auth.js.md) |
 | `views/partials/header.ejs` | [views/partials/header.ejs.md](views/partials/header.ejs.md) |
 | `views/partials/footer.ejs` | [views/partials/footer.ejs.md](views/partials/footer.ejs.md) |
 | `views/index.ejs` | [views/index.ejs.md](views/index.ejs.md) |
@@ -15,6 +16,7 @@
 | `views/new-post.ejs` | [views/new-post.ejs.md](views/new-post.ejs.md) |
 | `views/categories.ejs` | [views/categories.ejs.md](views/categories.ejs.md) |
 | `views/tags.ejs` | [views/tags.ejs.md](views/tags.ejs.md) |
+| `views/login.ejs` | [views/login.ejs.md](views/login.ejs.md) |
 | `views/calendar.ejs` | [views/calendar.ejs.md](views/calendar.ejs.md) |
 | `views/404.ejs` | [views/404.ejs.md](views/404.ejs.md) |
 | `public/css/style.css` | [public/css/style.css.md](public/css/style.css.md) |

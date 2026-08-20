@@ -16,6 +16,13 @@
         <a href="/tags">タグ</a>
         <a href="/calendar">カレンダー</a>
         <a href="/new">新規投稿</a>
+        <% if (isAuthenticated) { %>
+          <form class="logout-form" action="/logout" method="POST">
+            <button type="submit" class="link-button">ログアウト</button>
+          </form>
+        <% } else { %>
+          <a href="/login">ログイン</a>
+        <% } %>
       </nav>
       <form class="search-form" action="/search" method="GET">
         <input

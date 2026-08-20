@@ -7,6 +7,7 @@
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリーバッジ（`.category-badge`）およびカテゴリー一覧画面（`.category-list`系）のスタイルを追加 |
 | 1.2 | 2026-08-20 | システム | `.tag`をリンク要素として使えるよう`text-decoration: none`とホバー時の配色（`.tag:hover`）を追加 |
+| 1.3 | 2026-08-20 | システム | ヘッダーのログアウトボタン用に`.logout-form`, `.link-button`, `.link-button:hover`を追加 |
 
 ## 1. 概要
 
@@ -40,7 +41,7 @@
 | セクション | 主なセレクタ | 対応画面/要素 |
 |---|---|---|
 | 共通レイアウト | `.container`, `body`, `*` | 全画面の余白・幅・フォント |
-| ヘッダー | `.site-header`, `.header-inner`, `.logo`, `.main-nav`, `.search-form` | `partials/header.ejs` |
+| ヘッダー | `.site-header`, `.header-inner`, `.logo`, `.main-nav`, `.search-form`, `.logout-form`, `.link-button` | `partials/header.ejs` |
 | メイン領域 | `main.container`, `.page-title` | 各画面の見出し |
 | 記事一覧 | `.post-list`, `.post-card`, `.post-card-title`, `.post-meta`, `.tag-list`, `.tag`, `.post-excerpt`, `.empty-state` | `index.ejs`, `calendar.ejs`（選択日一覧） |
 | カテゴリー | `.category-badge`, `.category-list`, `.category-list-item`, `.category-count` | `index.ejs`, `post.ejs`（バッジ）、`categories.ejs`（一覧） |
@@ -62,6 +63,7 @@
 | `.calendar-table td.selected` | 背景色をアクセント色寄りに | 選択中の日付を視覚的に強調 |
 | `.day-num.muted` | 文字色を淡色に | 投稿が存在しない日付をリンク不可・非強調として表現 |
 | `.tag` | `text-decoration: none` | `<a>`要素として使用しているタグバッジからブラウザ標準の下線を除去するため |
+| `.link-button` | `background: none`, `border: none`, `padding: 0` 等 | `<button>`要素（ログアウト）をナビゲーションの`<a>`リンクと見た目を揃えるため、ブラウザ標準のボタン装飾を除去 |
 
 ## 4. 入出力仕様
 
