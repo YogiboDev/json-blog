@@ -70,6 +70,23 @@ app.get('/categories/:category', (req, res) => {
   });
 });
 
+// --- Tags ---
+app.get('/tags', (req, res) => {
+  res.render('tags', { tags: db.getTags() });
+});
+
+app.get('/tags/:tag', (req, res) => {
+  const tag = req.params.tag;
+  const posts = db.getPostsByTag(tag);
+  const commentCounts = db.getCommentCounts();
+  res.render('index', {
+    posts,
+    commentCounts,
+    heading: `タグ: 「${tag}」`,
+    emptyMessage: 'このタグの記事はまだありません。',
+  });
+});
+
 // --- Search (must come before /posts/:id-like collisions; separate path anyway) ---
 app.get('/search', (req, res) => {
   const q = (req.query.q || '').toString();

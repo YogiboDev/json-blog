@@ -167,6 +167,12 @@ main.container {
   border-radius: 999px;
   padding: 2px 10px;
   font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.tag:hover {
+  background: var(--accent);
+  color: white;
 }
 
 .post-excerpt {

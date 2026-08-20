@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`createPost`に`category`引数追加、`getPostsByCategory`/`getCategories`を新設、`searchPosts`の検索対象に`category`を追加） |
+| 1.2 | 2026-08-20 | システム | タグ機能を追加（`getPostsByTag`/`getTags`を新設） |
 
 ## 1. 概要
 
@@ -35,7 +36,8 @@
 
 ```
 getAllPosts, getPostById, createPost, deletePost, searchPosts, getPostsByDate,
-getPostsByCategory, getCategories, getCommentsByPostId, addComment, getCommentCounts
+getPostsByCategory, getCategories, getPostsByTag, getTags, getCommentsByPostId, addComment,
+getCommentCounts
 ```
 
 ## 3. 詳細仕様
@@ -109,6 +111,16 @@ getPostsByCategory, getCategories, getCommentsByPostId, addComment, getCommentCo
 - 戻り値: `{ name: string, count: number }[]`
 - 処理: `getAllPosts()`を`category`（未設定時は`'未分類'`）ごとに件数集計し、件数降順・同数の場合は名称の昇順（`localeCompare`）でソートして返す
 
+#### `getPostsByTag(tag)`
+- 引数: `tag: string`
+- 戻り値: `Post[]`
+- 処理: `getAllPosts()`のうち`(p.tags || []).includes(tag)`となる記事を抽出（新しい順）
+
+#### `getTags()`
+- 引数: なし
+- 戻り値: `{ name: string, count: number }[]`
+- 処理: `getAllPosts()`の各記事の`tags`配列を展開し、タグ名ごとに件数を集計。件数降順、同数の場合は名称の昇順（`localeCompare`）でソートして返す
+
 ### 3.3 コメント関連関数
 
 #### `getCommentsByPostId(postId)`
@@ -138,7 +150,7 @@ getPostsByCategory, getCategories, getCommentsByPostId, addComment, getCommentCo
 
 | 関数 | 入力（読み込むファイル） | 出力（書き込むファイル） |
 |---|---|---|
-| `getAllPosts`, `getPostById`, `searchPosts`, `getPostsByDate`, `getPostsByCategory`, `getCategories` | `posts.json` | なし |
+| `getAllPosts`, `getPostById`, `searchPosts`, `getPostsByDate`, `getPostsByCategory`, `getCategories`, `getPostsByTag`, `getTags` | `posts.json` | なし |
 | `createPost` | `posts.json` | `posts.json` |
 | `deletePost` | `posts.json`, `comments.json` | `posts.json`, `comments.json` |
 | `getCommentsByPostId`, `getCommentCounts` | `comments.json` | なし |
@@ -151,3 +163,4 @@ getPostsByCategory, getCategories, getCommentsByPostId, addComment, getCommentCo
 - `id`は記事・コメットそれぞれ独立した採番空間であり、両者の値が偶然一致しても`postId`により正しく関連付けられるため問題ない。
 - `readJson`はJSON構文エラーを捕捉しないため、`data/*.json`を手動編集する際は構文を崩さないよう注意すること。
 - `category`フィールドを持たない既存記事データ（`v1.0`以前に作成されたレコード等）に対しては、`getPostsByCategory`/`getCategories`ともに`'未分類'`として扱うフォールバックを持つため、データ移行なしでそのまま利用できる。
+- `tags`フィールドを持たない既存記事データに対しては、`getPostsByTag`/`getTags`ともに`p.tags || []`で空配列として扱うため、データ移行なしでそのまま利用できる（該当記事はタグ集計に一切含まれない）。

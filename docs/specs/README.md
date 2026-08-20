@@ -14,6 +14,7 @@
 | `views/post.ejs` | [views/post.ejs.md](views/post.ejs.md) |
 | `views/new-post.ejs` | [views/new-post.ejs.md](views/new-post.ejs.md) |
 | `views/categories.ejs` | [views/categories.ejs.md](views/categories.ejs.md) |
+| `views/tags.ejs` | [views/tags.ejs.md](views/tags.ejs.md) |
 | `views/calendar.ejs` | [views/calendar.ejs.md](views/calendar.ejs.md) |
 | `views/404.ejs` | [views/404.ejs.md](views/404.ejs.md) |
 | `public/css/style.css` | [public/css/style.css.md](public/css/style.css.md) |

@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリーバッジ（`/categories/:category`へのリンク）を追加 |
+| 1.2 | 2026-08-20 | システム | タグを`/tags/:tag`へのリンクに変更 |
 
 ## 1. 概要
 
@@ -37,7 +38,7 @@
 2. `<article class="post-detail">`
    - タイトル、投稿日時（`formatDate(post.date)`）、投稿者
    - カテゴリーバッジ：`post.category || '未分類'`を`/categories/{encodeURIComponent(category)}`へのリンクとして表示（`category-badge`クラス）
-   - タグ一覧（存在する場合のみ）
+   - タグ一覧（存在する場合のみ。各タグは`/tags/{encodeURIComponent(tag)}`へのリンク、`tag`クラス）
    - 本文全文：`<%= post.content %>`（CSS `white-space: pre-wrap`により改行を保持。HTMLエスケープ済み）
    - 削除フォーム：送信時にクライアント側`confirm('この記事を削除しますか？（コメントも全て削除されます）')`で確認。承認時のみ`POST /posts/:id/delete`を送信
 3. `<section class="comments-section" id="comments">`

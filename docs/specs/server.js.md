@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリー機能を追加（`GET /categories`, `GET /categories/:category`、`POST /posts`に`category`パラメータ追加） |
+| 1.2 | 2026-08-20 | システム | タグ機能を追加（`GET /tags`, `GET /tags/:tag`） |
 
 ## 1. 概要
 
@@ -67,7 +68,9 @@
 | 8 | POST | `/posts/:id/delete` | 記事削除（コメントもカスケード削除）。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
 | 9 | GET | `/categories` | `db.getCategories()`で件数付きカテゴリー一覧を取得し`categories.ejs`を描画 |
 | 10 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
-| 11 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
+| 11 | GET | `/tags` | `db.getTags()`で件数付きタグ一覧を取得し`tags.ejs`を描画 |
+| 12 | GET | `/tags/:tag` | `db.getPostsByTag(tag)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
+| 13 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
 
 ### 3.4 ルート個別仕様
 
@@ -123,6 +126,17 @@
 - 入力: `req.params.category`（URLデコード済みのカテゴリー名）
 - 処理: `db.getPostsByCategory(category)`, `db.getCommentCounts()`
 - 出力変数: `posts`, `commentCounts`, `heading: 'カテゴリー: 「' + category + '」'`, `emptyMessage: 'このカテゴリーの記事はまだありません。'`
+- 描画テンプレート: `index.ejs`（一覧画面を流用）
+
+#### GET `/tags`
+- 入力: なし
+- 処理: `db.getTags()`
+- 出力変数: `tags`（`{name, count}[]`、件数降順・同数は名称昇順）
+
+#### GET `/tags/:tag`
+- 入力: `req.params.tag`（URLデコード済みのタグ名）
+- 処理: `db.getPostsByTag(tag)`, `db.getCommentCounts()`
+- 出力変数: `posts`, `commentCounts`, `heading: 'タグ: 「' + tag + '」'`, `emptyMessage: 'このタグの記事はまだありません。'`
 - 描画テンプレート: `index.ejs`（一覧画面を流用）
 
 #### フォールバック（404）

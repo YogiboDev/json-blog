@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 1.0 | 2026-08-19 | システム | 新規作成 |
 | 1.1 | 2026-08-19 | システム | #1: カテゴリーバッジ（`.category-badge`）およびカテゴリー一覧画面（`.category-list`系）のスタイルを追加 |
+| 1.2 | 2026-08-20 | システム | `.tag`をリンク要素として使えるよう`text-decoration: none`とホバー時の配色（`.tag:hover`）を追加 |
 
 ## 1. 概要
 
@@ -43,6 +44,7 @@
 | メイン領域 | `main.container`, `.page-title` | 各画面の見出し |
 | 記事一覧 | `.post-list`, `.post-card`, `.post-card-title`, `.post-meta`, `.tag-list`, `.tag`, `.post-excerpt`, `.empty-state` | `index.ejs`, `calendar.ejs`（選択日一覧） |
 | カテゴリー | `.category-badge`, `.category-list`, `.category-list-item`, `.category-count` | `index.ejs`, `post.ejs`（バッジ）、`categories.ejs`（一覧） |
+| タグ | `.tag`, `.tag:hover`, `.category-list`, `.category-list-item`, `.category-count` | `index.ejs`, `post.ejs`（`.tag`）、`tags.ejs`（一覧、`categories.ejs`と同じ`.category-list`系クラスを流用） |
 | 記事詳細 | `.post-detail`, `.post-content`, `.delete-form`, `.btn-danger` | `post.ejs` |
 | コメント | `.comments-section`, `.comment-list`, `.comment-item`, `.comment-meta`, `.comment-message`, `.comment-form` | `post.ejs` |
 | 投稿フォーム | `.post-form`, `.required` | `new-post.ejs` |
@@ -59,6 +61,7 @@
 | `.calendar-table td.today` | 背景色を淡いアクセント色に | 本日の日付を視覚的に強調 |
 | `.calendar-table td.selected` | 背景色をアクセント色寄りに | 選択中の日付を視覚的に強調 |
 | `.day-num.muted` | 文字色を淡色に | 投稿が存在しない日付をリンク不可・非強調として表現 |
+| `.tag` | `text-decoration: none` | `<a>`要素として使用しているタグバッジからブラウザ標準の下線を除去するため |
 
 ## 4. 入出力仕様
 
