@@ -46,13 +46,19 @@ function stripHtml(html) {
 }
 app.locals.stripHtml = stripHtml;
 
-// --- Home: list all posts ---
+function wrapPosts(posts) {
+  return posts.map((post) => ({ post, isRepost: false, sortDate: post.date }));
+}
+
+// --- Home: list all posts (including reposts) ---
 app.get('/', (req, res) => {
-  const posts = db.getAllPosts();
+  const items = db.getFeedPosts();
   const commentCounts = db.getCommentCounts();
+  const repostCounts = db.getRepostCounts();
   res.render('index', {
-    posts,
+    items,
     commentCounts,
+    repostCounts,
     heading: '最新の投稿',
     emptyMessage: 'まだ投稿がありません。',
   });
@@ -106,9 +112,11 @@ app.get('/categories/:category', (req, res) => {
   const category = req.params.category;
   const posts = db.getPostsByCategory(category);
   const commentCounts = db.getCommentCounts();
+  const repostCounts = db.getRepostCounts();
   res.render('index', {
-    posts,
+    items: wrapPosts(posts),
     commentCounts,
+    repostCounts,
     heading: `カテゴリー: 「${category}」`,
     emptyMessage: 'このカテゴリーの記事はまだありません。',
   });
@@ -123,9 +131,11 @@ app.get('/tags/:tag', (req, res) => {
   const tag = req.params.tag;
   const posts = db.getPostsByTag(tag);
   const commentCounts = db.getCommentCounts();
+  const repostCounts = db.getRepostCounts();
   res.render('index', {
-    posts,
+    items: wrapPosts(posts),
     commentCounts,
+    repostCounts,
     heading: `タグ: 「${tag}」`,
     emptyMessage: 'このタグの記事はまだありません。',
   });
@@ -136,9 +146,11 @@ app.get('/search', (req, res) => {
   const q = (req.query.q || '').toString();
   const results = q.trim() ? db.searchPosts(q) : [];
   const commentCounts = db.getCommentCounts();
+  const repostCounts = db.getRepostCounts();
   res.render('index', {
-    posts: results,
+    items: wrapPosts(results),
     commentCounts,
+    repostCounts,
     heading: `検索結果: 「${q}」`,
     emptyMessage: q.trim()
       ? 'キーワードに一致する記事が見つかりませんでした。'
@@ -209,7 +221,15 @@ app.get('/posts/:id', (req, res) => {
   const post = db.getPostById(req.params.id);
   if (!post) return res.status(404).render('404');
   const comments = db.getCommentsByPostId(post.id);
-  res.render('post', { post, comments, error: null });
+  const repostCount = db.getRepostCounts()[post.id] || 0;
+  res.render('post', { post, comments, error: null, repostCount });
+});
+
+app.post('/posts/:id/repost', auth.requireLogin, (req, res) => {
+  const post = db.getPostById(req.params.id);
+  if (!post) return res.status(404).render('404');
+  db.createRepost(post.id);
+  res.redirect('/');
 });
 
 app.post('/posts/:id/comments', (req, res) => {

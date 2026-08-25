@@ -236,6 +236,32 @@ main.container {
   color: var(--text-muted);
 }
 
+.repost-banner {
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.repost-form {
+  margin-top: 10px;
+}
+
+.btn-repost {
+  background: transparent;
+  color: var(--accent-dark);
+  border: 1px solid var(--accent);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.btn-repost:hover {
+  background: var(--accent);
+  color: white;
+}
+
 .delete-form {
   margin-top: 28px;
   text-align: right;
