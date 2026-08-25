@@ -5,6 +5,7 @@
   <div class="post-meta">
     <span><%= formatDate(post.date) %></span>
     <span>by <%= post.author %></span>
+    <span>🔁 <%= repostCount %></span>
   </div>
   <a class="category-badge" href="/categories/<%= encodeURIComponent(post.category || '未分類') %>"><%= post.category || '未分類' %></a>
   <% if (post.tags && post.tags.length) { %>
@@ -15,6 +16,12 @@
     </div>
   <% } %>
   <div class="post-content"><%- post.content %></div>
+
+  <% if (isAuthenticated) { %>
+    <form class="repost-form" action="/posts/<%= post.id %>/repost" method="POST">
+      <button type="submit" class="btn-repost">🔁 リポスト</button>
+    </form>
+  <% } %>
 
   <form class="delete-form" action="/posts/<%= post.id %>/delete" method="POST"
         onsubmit="return confirm('この記事を削除しますか？（コメントも全て削除されます）');">
