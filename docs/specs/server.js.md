@@ -9,6 +9,7 @@
 | 1.2 | 2026-08-20 | システム | タグ機能を追加（`GET /tags`, `GET /tags/:tag`） |
 | 1.3 | 2026-08-20 | システム | #2: ログイン機能を追加（`GET/POST /login`, `POST /logout`。`GET /new`, `POST /posts`に`auth.requireLogin`ミドルウェアを適用。全リクエストに`res.locals.isAuthenticated`を設定する共通ミドルウェアを追加） |
 | 1.4 | 2026-08-20 | システム | #3: TinyMCE静的配信（`/tinymce`, `/tinymce/langs`）を追加。記事一覧等の抜粋表示用にHTMLタグ・実体参照を除去する共通ヘルパー`stripHtml`（`app.locals.stripHtml`）を追加 |
+| 1.5 | 2026-08-26 | システム | #4: リポスト機能を追加（`POST /posts/:id/repost`ルート新設（ログイン必須）、`wrapPosts`ヘルパー追加、各一覧ルート（`/`, `/categories/:category`, `/tags/:tag`, `/search`）および詳細ルート（`/posts/:id`）でリポスト件数・リポスト記事対応） |
 
 ## 1. 概要
 
@@ -26,7 +27,7 @@
 |---|---|---|
 | `express` | 外部パッケージ | HTTPサーバー・ルーティング |
 | `path` | Node.js標準 | ビュー／静的ファイルの絶対パス解決 |
-| `./lib/db` | 自作モジュール | 記事・コメントのデータアクセス関数群 |
+| `./lib/db` | 自作モジュール | 記事・コメント・リポストのデータアクセス関数群 |
 | `./lib/auth` | 自作モジュール | 固定ID・パスワードによる認証判定、ログイン状態Cookieの発行・検証、ログイン必須ミドルウェア |
 
 ### 2.2 呼び出し関係
@@ -67,41 +68,51 @@
 | 実装 | タグ（`<[^>]*>`）および`&nbsp;`を半角スペースに、`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#39;`を対応する記号に置換後、連続空白（`\s+`）を単一スペースに置換して`trim()` |
 | 公開範囲 | `app.locals.stripHtml`に登録し、全EJSテンプレートから`stripHtml()`として呼び出し可能 |
 
+#### `wrapPosts(posts)`
+
+| 項目 | 内容 |
+|---|---|
+| 引数 | `posts: Post[]` — 記事配列 |
+| 戻り値 | `Array` — `posts.map((post) => ({ post, isRepost: false, sortDate: post.date }))` |
+| 実装 | カテゴリー別・タグ別・検索結果一覧等で、通常記事配列を`index.ejs`が要求する`items`形式へ変換する内部ヘルパー |
+| 公開範囲 | モジュール内部（非公開） |
+
 ### 3.3 共通ミドルウェア
 
 | 項目 | 内容 |
 |---|---|
 | 処理 | 全リクエストに対し`res.locals.isAuthenticated = auth.isAuthenticated(req)`を設定 |
-| 目的 | 全EJSテンプレート（`partials/header.ejs`のログイン／ログアウト表示切り替え）から`isAuthenticated`を参照可能にする |
+| 目的 | 全EJSテンプレート（`partials/header.ejs`のログイン／ログアウト表示切り替え、`index.ejs`/`post.ejs`のリポストボタン表示切り替え）から`isAuthenticated`を参照可能にする |
 | 登録位置 | ボディパーサー・静的配信設定の直後、全ルート定義より前 |
 
 ### 3.4 ルート定義一覧
 
 | # | メソッド | パス | 処理概要 |
 |---|---|---|---|
-| 1 | GET | `/` | 全記事一覧＋コメント数を取得し`index.ejs`を描画 |
+| 1 | GET | `/` | 全記事（リポスト含む）＋コメント数＋リポスト数を取得し`index.ejs`を描画 |
 | 2 | GET | `/new` | ログイン必須（`auth.requireLogin`）。`new-post.ejs`を`error: null`で描画 |
 | 3 | POST | `/posts` | ログイン必須（`auth.requireLogin`）。記事新規作成。バリデーションNGならHTTP 400で`new-post.ejs`再描画、成功時は`/posts/:id`へ302リダイレクト |
-| 4 | GET | `/search` | クエリ`q`で`db.searchPosts()`を実行し`index.ejs`を描画（一覧テンプレート流用） |
+| 4 | GET | `/search` | クエリ`q`で`db.searchPosts()`を実行し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
 | 5 | GET | `/calendar` | クエリ`year`,`month`,`date`をもとにカレンダー用データを組み立て`calendar.ejs`を描画 |
-| 6 | GET | `/posts/:id` | 記事詳細取得。存在しなければHTTP 404で`404.ejs`。存在すれば`post.ejs`を描画 |
-| 7 | POST | `/posts/:id/comments` | コメント新規作成。記事なしはHTTP 404、本文空はHTTP 400で`post.ejs`再描画。成功時は`/posts/:id#comments`へ302リダイレクト |
-| 8 | POST | `/posts/:id/delete` | 記事削除（コメントもカスケード削除）。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
-| 9 | GET | `/categories` | `db.getCategories()`で件数付きカテゴリー一覧を取得し`categories.ejs`を描画 |
-| 10 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
-| 11 | GET | `/tags` | `db.getTags()`で件数付きタグ一覧を取得し`tags.ejs`を描画 |
-| 12 | GET | `/tags/:tag` | `db.getPostsByTag(tag)`で該当記事一覧を取得し`index.ejs`を描画（一覧テンプレート流用） |
-| 13 | GET | `/login` | `login.ejs`を`error: null`で描画 |
-| 14 | POST | `/login` | ID・パスワード検証。成功時はセッションCookie発行し`redirect`（既定`/`）へ302リダイレクト、失敗時はHTTP 400で`login.ejs`再描画 |
-| 15 | POST | `/logout` | セッションCookieを削除し`/`へ302リダイレクト |
-| 16 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
+| 6 | GET | `/posts/:id` | 記事詳細取得。リポスト件数を算出して`post.ejs`を描画。存在しなければHTTP 404で`404.ejs` |
+| 7 | POST | `/posts/:id/repost` | ログイン必須（`auth.requireLogin`）。記事リポスト作成。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
+| 8 | POST | `/posts/:id/comments` | コメント新規作成。記事なしはHTTP 404、本文空はHTTP 400で`post.ejs`再描画。成功時は`/posts/:id#comments`へ302リダイレクト |
+| 9 | POST | `/posts/:id/delete` | 記事削除（コメント・リポストもカスケード削除）。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
+| 10 | GET | `/categories` | `db.getCategories()`で件数付きカテゴリー一覧を取得し`categories.ejs`を描画 |
+| 11 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
+| 12 | GET | `/tags` | `db.getTags()`で件数付きタグ一覧を取得し`tags.ejs`を描画 |
+| 13 | GET | `/tags/:tag` | `db.getPostsByTag(tag)`で該当記事一覧を取得し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
+| 14 | GET | `/login` | `login.ejs`を`error: null`で描画 |
+| 15 | POST | `/login` | ID・パスワード検証。成功時はセッションCookie発行し`redirect`（既定`/`）へ302リダイレクト、失敗時はHTTP 400で`login.ejs`再描画 |
+| 16 | POST | `/logout` | セッションCookieを削除し`/`へ302リダイレクト |
+| 17 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
 
 ### 3.5 ルート個別仕様
 
 #### GET `/`
 - 入力: なし
-- 処理: `db.getAllPosts()`, `db.getCommentCounts()`
-- 出力変数: `posts`, `commentCounts`, `heading: '最新の投稿'`, `emptyMessage: 'まだ投稿がありません。'`
+- 処理: `db.getFeedPosts()`, `db.getCommentCounts()`, `db.getRepostCounts()`
+- 出力変数: `items`, `commentCounts`, `repostCounts`, `heading: '最新の投稿'`, `emptyMessage: 'まだ投稿がありません。'`
 
 #### GET `/new`
 - 前置ミドルウェア: `auth.requireLogin`（未ログイン時は`/login?redirect=/new`へ302リダイレクトし、以降未実行）
@@ -115,8 +126,8 @@
 
 #### GET `/search`
 - 入力: `req.query.q`（未指定時は空文字扱い）
-- 処理: `q.trim()`が真なら`db.searchPosts(q)`、偽なら`results = []`
-- 出力変数: `posts: results`, `commentCounts`, `heading`, `emptyMessage`（検索有無で文言分岐）, `searchQuery: q`
+- 処理: `q.trim()`が真なら`db.searchPosts(q)`、偽なら`results = []`。`wrapPosts(results)`、`db.getCommentCounts()`、`db.getRepostCounts()`を取得
+- 出力変数: `items: wrapPosts(results)`, `commentCounts`, `repostCounts`, `heading`, `emptyMessage`（検索有無で文言分岐）, `searchQuery: q`
 
 #### GET `/calendar`
 - 入力: `req.query.year`, `req.query.month`（数値変換、未指定/不正値は当日基準）, `req.query.date`（`YYYY-MM-DD`）
@@ -131,8 +142,14 @@
 
 #### GET `/posts/:id`
 - 入力: `req.params.id`
-- 処理: `db.getPostById(id)` → 未存在ならHTTP 404 `404.ejs`。存在すれば`db.getCommentsByPostId(id)`
-- 出力変数: `post`, `comments`, `error: null`
+- 処理: `db.getPostById(id)` → 未存在ならHTTP 404 `404.ejs`。存在すれば`db.getCommentsByPostId(id)`、`repostCount = db.getRepostCounts()[post.id] || 0`
+- 出力変数: `post`, `comments`, `error: null`, `repostCount`
+
+#### POST `/posts/:id/repost`
+- 前置ミドルウェア: `auth.requireLogin`（未ログイン時は`/login?redirect=/posts/:id/repost`へ302リダイレクト）
+- 入力: `req.params.id`
+- 処理: `db.getPostById(id)` → 未存在ならHTTP 404 `404.ejs`。存在すれば`db.createRepost(post.id)`
+- 正常系: `res.redirect('/')`
 
 #### POST `/posts/:id/comments`
 - 入力: `req.params.id`, `req.body.name`, `req.body.message`
@@ -141,7 +158,7 @@
 
 #### POST `/posts/:id/delete`
 - 入力: `req.params.id`
-- 処理: 記事未存在→HTTP 404。存在すれば`db.deletePost(post.id)` → `res.redirect('/')`
+- 処理: 記事未存在→HTTP 404。存在すれば`db.deletePost(post.id)`（コメント・リポストもカスケード削除） → `res.redirect('/')`
 
 #### GET `/categories`
 - 入力: なし
@@ -150,8 +167,8 @@
 
 #### GET `/categories/:category`
 - 入力: `req.params.category`（URLデコード済みのカテゴリー名）
-- 処理: `db.getPostsByCategory(category)`, `db.getCommentCounts()`
-- 出力変数: `posts`, `commentCounts`, `heading: 'カテゴリー: 「' + category + '」'`, `emptyMessage: 'このカテゴリーの記事はまだありません。'`
+- 処理: `db.getPostsByCategory(category)`, `db.getCommentCounts()`, `db.getRepostCounts()`
+- 出力変数: `items: wrapPosts(posts)`, `commentCounts`, `repostCounts`, `heading: 'カテゴリー: 「' + category + '」'`, `emptyMessage: 'このカテゴリーの記事はまだありません。'`
 - 描画テンプレート: `index.ejs`（一覧画面を流用）
 
 #### GET `/tags`
@@ -161,8 +178,8 @@
 
 #### GET `/tags/:tag`
 - 入力: `req.params.tag`（URLデコード済みのタグ名）
-- 処理: `db.getPostsByTag(tag)`, `db.getCommentCounts()`
-- 出力変数: `posts`, `commentCounts`, `heading: 'タグ: 「' + tag + '」'`, `emptyMessage: 'このタグの記事はまだありません。'`
+- 処理: `db.getPostsByTag(tag)`, `db.getCommentCounts()`, `db.getRepostCounts()`
+- 出力変数: `items: wrapPosts(posts)`, `commentCounts`, `repostCounts`, `heading: 'タグ: 「' + tag + '」'`, `emptyMessage: 'このタグの記事はまだありません。'`
 - 描画テンプレート: `index.ejs`（一覧画面を流用）
 
 #### GET `/login`
@@ -188,12 +205,12 @@
 |---|---|
 | フォーム送信 | `application/x-www-form-urlencoded`（`req.body`） |
 | クエリパラメータ | `req.query`（検索キーワード、カレンダー年月・日付） |
-| パスパラメータ | `req.params.id`（記事ID） |
+| パスパラメータ | `req.params.id`（記事ID）, `req.params.category`, `req.params.tag` |
 
 | 出力 | 形式 |
 |---|---|
 | 通常応答 | EJSでレンダリングしたHTML |
-| 登録・削除成功時 | HTTP 302リダイレクト |
+| 登録・削除・リポスト成功時 | HTTP 302リダイレクト |
 | バリデーションエラー | 該当画面をHTTP 400で再描画 |
 | リソース未存在 | HTTP 404で`404.ejs` |
 
@@ -202,4 +219,5 @@
 - ルーティングの順序に依存する処理はない（`/search`と`/posts/:id`はパスパターンが重複しないため定義順の影響を受けない）。
 - リクエストパラメータの型変換（`parseInt`）に失敗した場合（`NaN`）は、`year`・`month`ともに`||`演算子により当日の値へフォールバックする。
 - サーバー起動ログは標準出力に`Blog server running at http://localhost:${PORT}`を出力する。
-- `POST /posts/:id/delete`にはログイン必須化を適用していない（本バージョンでは`/new`, `/posts`のみを対象とする）。
+- `POST /posts/:id/delete`にはログイン必須化を適用していない（本バージョンでは`/new`, `/posts`, `/posts/:id/repost`を対象とする）。
+- `POST /posts/:id/repost`はリポスト作成後、トップページ（`/`）へ302リダイレクトする。
