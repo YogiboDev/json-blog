@@ -17,7 +17,10 @@
         <a href="/tags">タグ</a>
         <a href="/calendar">カレンダー</a>
         <a href="/new">新規投稿</a>
-        <a href="/rss.xml">RSS</a>
+        <a href="/rss.xml" class="rss-button" title="RSSフィード">
+          <svg viewBox="0 0 448 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M128 344c-30.9 0-56 25.1-56 56s25.1 56 56 56 56-25.1 56-56-25.1-56-56-56zM0 128v64c159.1 0 288 128.9 288 288h64c0-194.4-157.6-352-352-352zm0 128v64c88.4 0 160 71.6 160 160h64c0-123.7-100.3-224-224-224z"/></svg>
+          RSS
+        </a>
         <% if (isAuthenticated) { %>
           <form class="logout-form" action="/logout" method="POST">
             <button type="submit" class="link-button">ログアウト</button>
