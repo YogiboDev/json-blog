@@ -75,7 +75,7 @@ app.get('/', (req, res) => {
 
 // --- RSS feed ---
 app.get('/rss.xml', (req, res) => {
-  const posts = db.getAllPosts().slice(0, 20);
+  const posts = db.getAllPosts().slice(0, 100);
   const siteUrl = `${req.protocol}://${req.get('host')}`;
 
   const items = posts
