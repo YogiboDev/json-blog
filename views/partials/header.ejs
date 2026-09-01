@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' - JSON Blog' : 'JSON Blog' %></title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="alternate" type="application/rss+xml" title="JSON Blog RSS" href="/rss.xml">
 </head>
 <body>
   <header class="site-header">
@@ -16,6 +17,7 @@
         <a href="/tags">タグ</a>
         <a href="/calendar">カレンダー</a>
         <a href="/new">新規投稿</a>
+        <a href="/rss.xml">RSS</a>
         <% if (isAuthenticated) { %>
           <form class="logout-form" action="/logout" method="POST">
             <button type="submit" class="link-button">ログアウト</button>

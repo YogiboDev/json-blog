@@ -50,6 +50,15 @@ function wrapPosts(posts) {
   return posts.map((post) => ({ post, isRepost: false, sortDate: post.date }));
 }
 
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 // --- Home: list all posts (including reposts) ---
 app.get('/', (req, res) => {
   const items = db.getFeedPosts();
@@ -62,6 +71,44 @@ app.get('/', (req, res) => {
     heading: '最新の投稿',
     emptyMessage: 'まだ投稿がありません。',
   });
+});
+
+// --- RSS feed ---
+app.get('/rss.xml', (req, res) => {
+  const posts = db.getAllPosts().slice(0, 20);
+  const siteUrl = `${req.protocol}://${req.get('host')}`;
+
+  const items = posts
+    .map((post) => {
+      const postUrl = `${siteUrl}/posts/${post.id}`;
+      const description = stripHtml(post.content).slice(0, 300);
+      return `    <item>
+      <title>${escapeXml(post.title)}</title>
+      <link>${escapeXml(postUrl)}</link>
+      <guid>${escapeXml(postUrl)}</guid>
+      <pubDate>${new Date(post.date).toUTCString()}</pubDate>
+      <author>${escapeXml(post.author)}</author>
+      <description>${escapeXml(description)}</description>
+    </item>`;
+    })
+    .join('\n');
+
+  const lastBuildDate = posts.length ? new Date(posts[0].date).toUTCString() : new Date().toUTCString();
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>JSON Blog</title>
+    <link>${escapeXml(siteUrl)}</link>
+    <description>JSONファイルベースのシンプルなブログシステム</description>
+    <language>ja</language>
+    <lastBuildDate>${lastBuildDate}</lastBuildDate>
+    <atom:link xmlns:atom="http://www.w3.org/2005/Atom" href="${escapeXml(`${siteUrl}/rss.xml`)}" rel="self" type="application/rss+xml" />
+${items}
+  </channel>
+</rss>`;
+
+  res.type('application/rss+xml; charset=utf-8').send(xml);
 });
 
 // --- New post form (login required) ---
