@@ -62,6 +62,22 @@ body {
   color: var(--accent-dark);
 }
 
+.rss-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f26522;
+  color: #fff !important;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.rss-button:hover {
+  background: #d9541a;
+  color: #fff !important;
+}
+
 .logout-form {
   margin: 0;
 }
