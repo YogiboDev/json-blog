@@ -10,6 +10,7 @@
 | 1.3 | 2026-08-20 | システム | #2: ログイン機能を追加（`GET/POST /login`, `POST /logout`。`GET /new`, `POST /posts`に`auth.requireLogin`ミドルウェアを適用。全リクエストに`res.locals.isAuthenticated`を設定する共通ミドルウェアを追加） |
 | 1.4 | 2026-08-20 | システム | #3: TinyMCE静的配信（`/tinymce`, `/tinymce/langs`）を追加。記事一覧等の抜粋表示用にHTMLタグ・実体参照を除去する共通ヘルパー`stripHtml`（`app.locals.stripHtml`）を追加 |
 | 1.5 | 2026-08-26 | システム | #4: リポスト機能を追加（`POST /posts/:id/repost`ルート新設（ログイン必須）、`wrapPosts`ヘルパー追加、各一覧ルート（`/`, `/categories/:category`, `/tags/:tag`, `/search`）および詳細ルート（`/posts/:id`）でリポスト件数・リポスト記事対応） |
+| 1.6 | 2026-09-02 | システム | #5: RSSフィード（`GET /rss.xml`）の出力件数上限を20件から100件に変更。共通ヘルパー`escapeXml`を追加 |
 
 ## 1. 概要
 
@@ -77,6 +78,15 @@
 | 実装 | カテゴリー別・タグ別・検索結果一覧等で、通常記事配列を`index.ejs`が要求する`items`形式へ変換する内部ヘルパー |
 | 公開範囲 | モジュール内部（非公開） |
 
+#### `escapeXml(str)`
+
+| 項目 | 内容 |
+|---|---|
+| 引数 | `str: string` — エスケープ対象の文字列 |
+| 戻り値 | `string` — XML特殊文字（`&`, `<`, `>`, `"`, `'`）を実体参照（`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`）に置換した文字列 |
+| 実装 | `String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')` |
+| 公開範囲 | モジュール内部（非公開） |
+
 ### 3.3 共通ミドルウェア
 
 | 項目 | 内容 |
@@ -90,22 +100,23 @@
 | # | メソッド | パス | 処理概要 |
 |---|---|---|---|
 | 1 | GET | `/` | 全記事（リポスト含む）＋コメント数＋リポスト数を取得し`index.ejs`を描画 |
-| 2 | GET | `/new` | ログイン必須（`auth.requireLogin`）。`new-post.ejs`を`error: null`で描画 |
-| 3 | POST | `/posts` | ログイン必須（`auth.requireLogin`）。記事新規作成。バリデーションNGならHTTP 400で`new-post.ejs`再描画、成功時は`/posts/:id`へ302リダイレクト |
-| 4 | GET | `/search` | クエリ`q`で`db.searchPosts()`を実行し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
-| 5 | GET | `/calendar` | クエリ`year`,`month`,`date`をもとにカレンダー用データを組み立て`calendar.ejs`を描画 |
-| 6 | GET | `/posts/:id` | 記事詳細取得。リポスト件数を算出して`post.ejs`を描画。存在しなければHTTP 404で`404.ejs` |
-| 7 | POST | `/posts/:id/repost` | ログイン必須（`auth.requireLogin`）。記事リポスト作成。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
-| 8 | POST | `/posts/:id/comments` | コメント新規作成。記事なしはHTTP 404、本文空はHTTP 400で`post.ejs`再描画。成功時は`/posts/:id#comments`へ302リダイレクト |
-| 9 | POST | `/posts/:id/delete` | 記事削除（コメント・リポストもカスケード削除）。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
-| 10 | GET | `/categories` | `db.getCategories()`で件数付きカテゴリー一覧を取得し`categories.ejs`を描画 |
-| 11 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
-| 12 | GET | `/tags` | `db.getTags()`で件数付きタグ一覧を取得し`tags.ejs`を描画 |
-| 13 | GET | `/tags/:tag` | `db.getPostsByTag(tag)`で該当記事一覧を取得し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
-| 14 | GET | `/login` | `login.ejs`を`error: null`で描画 |
-| 15 | POST | `/login` | ID・パスワード検証。成功時はセッションCookie発行し`redirect`（既定`/`）へ302リダイレクト、失敗時はHTTP 400で`login.ejs`再描画 |
-| 16 | POST | `/logout` | セッションCookieを削除し`/`へ302リダイレクト |
-| 17 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
+| 2 | GET | `/rss.xml` | 最新記事を最大100件取得し、RSS 2.0形式のXML（`application/rss+xml`）を出力 |
+| 3 | GET | `/new` | ログイン必須（`auth.requireLogin`）。`new-post.ejs`を`error: null`で描画 |
+| 4 | POST | `/posts` | ログイン必須（`auth.requireLogin`）。記事新規作成。バリデーションNGならHTTP 400で`new-post.ejs`再描画、成功時は`/posts/:id`へ302リダイレクト |
+| 5 | GET | `/search` | クエリ`q`で`db.searchPosts()`を実行し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
+| 6 | GET | `/calendar` | クエリ`year`,`month`,`date`をもとにカレンダー用データを組み立て`calendar.ejs`を描画 |
+| 7 | GET | `/posts/:id` | 記事詳細取得。リポスト件数を算出して`post.ejs`を描画。存在しなければHTTP 404で`404.ejs` |
+| 8 | POST | `/posts/:id/repost` | ログイン必須（`auth.requireLogin`）。記事リポスト作成。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
+| 9 | POST | `/posts/:id/comments` | コメント新規作成。記事なしはHTTP 404、本文空はHTTP 400で`post.ejs`再描画。成功時は`/posts/:id#comments`へ302リダイレクト |
+| 10 | POST | `/posts/:id/delete` | 記事削除（コメント・リポストもカスケード削除）。記事なしはHTTP 404。成功時は`/`へ302リダイレクト |
+| 11 | GET | `/categories` | `db.getCategories()`で件数付きカテゴリー一覧を取得し`categories.ejs`を描画 |
+| 12 | GET | `/categories/:category` | `db.getPostsByCategory(category)`で該当記事一覧を取得し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
+| 13 | GET | `/tags` | `db.getTags()`で件数付きタグ一覧を取得し`tags.ejs`を描画 |
+| 14 | GET | `/tags/:tag` | `db.getPostsByTag(tag)`で該当記事一覧を取得し、リポスト件数を含めて`index.ejs`を描画（一覧テンプレート流用） |
+| 15 | GET | `/login` | `login.ejs`を`error: null`で描画 |
+| 16 | POST | `/login` | ID・パスワード検証。成功時はセッションCookie発行し`redirect`（既定`/`）へ302リダイレクト、失敗時はHTTP 400で`login.ejs`再描画 |
+| 17 | POST | `/logout` | セッションCookieを削除し`/`へ302リダイレクト |
+| 18 | ALL（フォールバック） | 上記以外全て | HTTP 404で`404.ejs`を描画 |
 
 ### 3.5 ルート個別仕様
 
@@ -113,6 +124,15 @@
 - 入力: なし
 - 処理: `db.getFeedPosts()`, `db.getCommentCounts()`, `db.getRepostCounts()`
 - 出力変数: `items`, `commentCounts`, `repostCounts`, `heading: '最新の投稿'`, `emptyMessage: 'まだ投稿がありません。'`
+
+#### GET `/rss.xml`
+- 入力: なし
+- 処理:
+  1. `db.getAllPosts().slice(0, 100)` で最新投稿を最大100件取得
+  2. サイトURL（`${req.protocol}://${req.get('host')}`）を構築
+  3. 各記事のタイトル・リンク・GUID・公開日時（UTC）・投稿者・抜粋（`stripHtml(post.content).slice(0, 300)`）を`escapeXml`でエスケープし、`<item>`タグを組み立て
+  4. 最終更新日時（`lastBuildDate`）を設定し、RSS 2.0形式のXMLドキュメントを構築
+- 出力: `Content-Type: application/rss+xml; charset=utf-8` でXML文字列を送信
 
 #### GET `/new`
 - 前置ミドルウェア: `auth.requireLogin`（未ログイン時は`/login?redirect=/new`へ302リダイレクトし、以降未実行）
@@ -210,6 +230,7 @@
 | 出力 | 形式 |
 |---|---|
 | 通常応答 | EJSでレンダリングしたHTML |
+| RSSフィード | `application/rss+xml; charset=utf-8`（RSS 2.0 XML） |
 | 登録・削除・リポスト成功時 | HTTP 302リダイレクト |
 | バリデーションエラー | 該当画面をHTTP 400で再描画 |
 | リソース未存在 | HTTP 404で`404.ejs` |
@@ -221,3 +242,4 @@
 - サーバー起動ログは標準出力に`Blog server running at http://localhost:${PORT}`を出力する。
 - `POST /posts/:id/delete`にはログイン必須化を適用していない（本バージョンでは`/new`, `/posts`, `/posts/:id/repost`を対象とする）。
 - `POST /posts/:id/repost`はリポスト作成後、トップページ（`/`）へ302リダイレクトする。
+- `GET /rss.xml`は最新記事を最大100件取得し、RSS 2.0仕様に基づきXML形式で配信する。各アイテムの説明（`<description>`）にはHTMLタグを除去した先頭300文字を出力し、特殊文字は`escapeXml`によりXMLエスケープされる。

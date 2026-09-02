@@ -10,6 +10,7 @@
 | 1.3 | 2026-08-20 | システム | #2: ヘッダーのログアウトボタン用に`.logout-form`, `.link-button`, `.link-button:hover`を追加 |
 | 1.4 | 2026-08-20 | システム | #3: TinyMCE導入に伴い、`.post-content`から`white-space: pre-wrap`を削除し、`.post-content p`、`.post-content ul, .post-content ol`、`.post-content blockquote`のスタイルを追加 |
 | 1.5 | 2026-08-26 | システム | #4: リポスト機能に伴い、リポストバナー（`.repost-banner`）、リポストフォーム（`.repost-form`）、リポストボタン（`.btn-repost`, `.btn-repost:hover`）のスタイルを追加 |
+| 1.6 | 2026-09-02 | システム | #6: ナビゲーションのRSS配信ボタン用スタイル（`.rss-button`, `.rss-button:hover`）を追加 |
 
 ## 1. 概要
 
@@ -43,7 +44,7 @@
 | セクション | 主なセレクタ | 対応画面/要素 |
 |---|---|---|
 | 共通レイアウト | `.container`, `body`, `*` | 全画面の余白・幅・フォント |
-| ヘッダー | `.site-header`, `.header-inner`, `.logo`, `.main-nav`, `.search-form`, `.logout-form`, `.link-button` | `partials/header.ejs` |
+| ヘッダー | `.site-header`, `.header-inner`, `.logo`, `.main-nav`, `.search-form`, `.logout-form`, `.link-button`, `.rss-button` | `partials/header.ejs` |
 | メイン領域 | `main.container`, `.page-title` | 各画面の見出し |
 | 記事一覧 | `.post-list`, `.post-card`, `.post-card-title`, `.post-meta`, `.tag-list`, `.tag`, `.post-excerpt`, `.empty-state`, `.repost-banner`, `.repost-form`, `.btn-repost` | `index.ejs`, `calendar.ejs`（選択日一覧） |
 | カテゴリー | `.category-badge`, `.category-list`, `.category-list-item`, `.category-count` | `index.ejs`, `post.ejs`（バッジ）、`categories.ejs`（一覧） |
@@ -65,6 +66,8 @@
 | `.repost-banner` | `color: var(--accent-dark)`, `font-size: 0.8rem`, `font-weight: bold`, `margin-bottom: 8px` | 記事一覧でリポストされた記事の上部にリポスト日時バナーを強調表示するため |
 | `.btn-repost` | 背景透明、`border: 1px solid var(--accent)`, `color: var(--accent-dark)`, 角丸 | リポストボタンのボタンスタイル定義 |
 | `.btn-repost:hover` | 背景`var(--accent)`、文字色`white` | リポストボタンのホバー表現 |
+| `.rss-button` | インラインフレックス、`gap: 4px`、背景`#f26522`（オレンジ）、文字色`#fff`、丸角（`border-radius: 999px`）、フォントサイズ`0.85rem` | ヘッダーナビゲーションのRSSリンクをアイコン付きオレンジピル型ボタンとして目立たせるため |
+| `.rss-button:hover` | 背景`#d9541a`、文字色`#fff` | RSSボタンのホバー時の色変化 |
 | `.calendar-table td.today` | 背景色を淡いアクセント色に | 本日の日付を視覚的に強調 |
 | `.calendar-table td.selected` | 背景色をアクセント色寄りに | 選択中の日付を視覚的に強調 |
 | `.day-num.muted` | 文字色を淡色に | 投稿が存在しない日付をリンク不可・非強調として表現 |
